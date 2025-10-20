@@ -1,0 +1,660 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#2575fc">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <title>Career Pathfinder</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      transition: background-color 0.5s ease, color 0.5s ease;
+      background-color: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.high-contrast {
+      background: #000; color: #fff;
+    }
+    body.high-contrast .btn, body.high-contrast form button {
+      border: 2px solid #fff; background: transparent !important;
+    }
+    .navbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 2rem; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white; flex-shrink: 0; z-index: 100;
+    }
+    .navbar select, .navbar button {
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      cursor: pointer; font-size: 0.9rem; padding: 0.4rem 0.8rem; border-radius: 5px;
+    }
+    #content-container { flex: 1; display: flex; flex-direction: column; }
+    .hero {
+      text-align: center; padding: 4rem 2rem;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white; flex: 1; display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+    }
+    .animated-text {
+      font-size: 2.5rem; opacity: 0; animation: fadeIn 2s forwards; margin-bottom: 1rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .btn {
+      margin-top: 1.5rem; padding: 0.8rem 1.5rem; background-color: white;
+      color: #2575fc; border: none; border-radius: 5px; font-size: 1rem;
+      cursor: pointer; text-decoration: none; display: inline-block;
+      font-weight: bold; transition: all 0.3s ease;
+    }
+    .btn:hover {
+      transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .form-container {
+      max-width: 600px; width: 90%; margin: 2rem auto; padding: 2rem;
+      background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex: 1;
+    }
+    body.dark-mode .form-container, body.high-contrast .form-container {
+      background: #1f1f1f; color: #fff;
+    }
+    .progress-bar {
+      width: 100%; background: #ddd; height: 8px; border-radius: 4px; margin-bottom: 1.5rem;
+    }
+    body.dark-mode .progress-bar, body.high-contrast .progress-bar {
+      background: #444;
+    }
+    .progress {
+      height: 100%; background-color: #2575fc; border-radius: 4px; transition: width 0.4s;
+    }
+    .step { display: none; }
+    .step.active { display: block; animation: fadeIn 0.5s ease-out; }
+    form label {
+      display: block; margin-bottom: 0.5rem; font-weight: bold;
+    }
+    form input, form select, form textarea {
+      width: 100%; padding: 0.7rem; margin-bottom: 1rem; border-radius: 5px;
+      border: 1px solid #ccc; background: #fff; color: #333; font-size: 1rem;
+      transition: border 0.3s;
+    }
+    form input:focus, form textarea:focus {
+      outline: none; border-color: #2575fc; box-shadow: 0 0 0 2px rgba(37,117,252,0.2);
+    }
+    body.dark-mode form input, body.dark-mode form select, body.dark-mode form textarea,
+    body.high-contrast form input, body.high-contrast form textarea {
+      background: #333; border: 1px solid #555; color: #fff;
+    }
+    form button {
+      margin-right: 0.5rem; margin-top: 0.5rem; padding: 0.7rem 1.5rem;
+      border: none; border-radius: 5px; cursor: pointer; background: #2575fc;
+      color: white; font-weight: bold; transition: all 0.3s ease;
+    }
+    form button:hover {
+      transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    .feedback {
+      color: #27ae60; font-size: 0.85rem; margin-bottom: 0.5rem;
+    }
+    .result-container {
+      max-width: 600px; width: 90%; margin: 2rem auto; padding: 2rem;
+      text-align: center; background: white; border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex: 1;
+    }
+    body.dark-mode .result-container, body.high-contrast .result-container {
+      background: #1f1f1f; color: #fff;
+    }
+    .suggestion-card {
+      margin-top: 1.5rem; padding: 1.5rem; background: #f0f4ff;
+      border-radius: 8px; animation: fadeInCard 1s ease-out;
+    }
+    body.dark-mode .suggestion-card, body.high-contrast .suggestion-card {
+      background: #2a2a2a;
+    }
+    @keyframes fadeInCard {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .confetti {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 1000;
+    }
+    .confetti-piece {
+      position: absolute; width: 10px; height: 10px; background-color: #f00;
+      animation: fall 5s linear forwards; top: -20px;
+    }
+    .confetti-piece:nth-child(2n) { background-color: #0f0; }
+    .confetti-piece:nth-child(3n) { background-color: #00f; }
+    .confetti-piece:nth-child(4n) { background-color: #ff0; }
+    .confetti-piece:nth-child(5n) { background-color: #0ff; }
+    @keyframes fall {
+      to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    .footer {
+      text-align: center; padding: 1rem; background: #eee; color: #555;
+      margin-top: auto; flex-shrink: 0;
+    }
+    body.dark-mode .footer, body.high-contrast .footer {
+      background: #111; color: #aaa;
+    }
+    .nav-buttons {
+      display: flex; justify-content: space-between; margin-top: 1rem;
+    }
+    .question-group {
+      margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;
+    }
+    body.dark-mode .question-group, body.high-contrast .question-group {
+      border-bottom: 1px solid #333;
+    }
+    .question-group:last-child {
+      border-bottom: none; margin-bottom: 0; padding-bottom: 0;
+    }
+    .chart-container {
+      margin: 1.5rem auto; width: 300px; height: 300px;
+    }
+    .badge-btn { margin-top: 1rem; background: #e74c3c; }
+    .share-btn { background: #3498db; }
+    .typewriter {
+      overflow: hidden; border-right: 2px solid; white-space: nowrap;
+      margin: 0 auto; letter-spacing: 0.15em; animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+    }
+    @keyframes typing {
+      from { width: 0 } to { width: 100% }
+    }
+    @keyframes blink-caret {
+      from, to { border-color: transparent } 50% { border-color: #fff; }
+    }
+    @media (max-width: 768px) {
+      .animated-text { font-size: 2rem; }
+      .hero { padding: 2rem 1rem; }
+      .form-container, .result-container { width: 95%; padding: 1.5rem; }
+      .navbar { padding: 1rem; }
+    }
+    @media (max-width: 480px) {
+      .animated-text { font-size: 1.5rem; }
+      .hero { padding: 1.5rem 0.5rem; }
+      .btn, form button { padding: 0.6rem 1rem; font-size: 0.9rem; }
+      .nav-buttons { flex-direction: column; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <nav class="navbar">
+    <h2>Career Pathfinder</h2>
+    <div style="display: flex; gap: 1rem;">
+      <select id="languageSelect" style="color: #333;">
+        <option value="en">English</option>
+        <option value="hi">हिंदी</option>
+      </select>
+      <button id="darkModeToggle">🌙 Dark Mode</button>
+    </div>
+  </nav>
+
+  <div id="content-container">
+    <section id="landing-page" class="hero">
+      <h1 class="animated-text">Discover Your Perfect Career Path</h1>
+      <p id="landing-desc">Let us guide you towards a fulfilling career based on your interests and strengths.</p>
+      <button class="btn" onclick="showForm()">Get Started</button>
+    </section>
+
+    <section id="form-page" class="form-container" style="display: none;">
+      <h2>Tell Us About Yourself</h2>
+      <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+      </div>
+      <form id="careerForm">
+        <div class="step active" id="step1">
+          <div class="question-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" required placeholder="Enter your full name" />
+            <div class="feedback" id="nameFeedback"></div>
+          </div>
+          <div class="question-group">
+            <label for="education">Education Level</label>
+            <select id="education" required>
+              <option value="">Select your education level</option>
+              <option value="10th">10th</option>
+              <option value="12th">12th</option>
+              <option value="Diploma">Diploma</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="B.Sc">B.Sc</option>
+              <option value="M.Tech">M.Tech</option>
+              <option value="MBA">MBA</option>
+              <option value="BBA">BBA</option>
+              <option value="Arts">Arts</option>
+            </select>
+          </div>
+          <div class="question-group">
+            <label for="branch">Branch / Field of Study</label>
+            <input type="text" id="branch" required placeholder="e.g. Computer Science, Business, etc." />
+          </div>
+          <div class="nav-buttons">
+            <div></div>
+            <button type="button" onclick="nextStep(2)">Next</button>
+          </div>
+        </div>
+
+        <div class="step" id="step2">
+          <div class="question-group">
+            <label for="hobbies">Hobbies / Interests</label>
+            <textarea id="hobbies" placeholder="e.g. coding, reading, designing..." required></textarea>
+            <div class="feedback" id="hobbiesFeedback"></div>
+          </div>
+          <div class="question-group">
+            <label for="workStyle">Preferred Work Style</label>
+            <select id="workStyle" required>
+              <option value="">Select your preferred work style</option>
+              <option value="Remote">Remote</option>
+              <option value="Office">Office</option>
+              <option value="Freelance">Freelance</option>
+            </select>
+          </div>
+          <div class="question-group">
+            <label for="strength">Favorite Subject or Strength</label>
+            <input type="text" id="strength" required placeholder="e.g. Mathematics, Communication, etc." />
+            <div class="feedback" id="strengthFeedback"></div>
+          </div>
+          <div class="question-group" id="codingQ" style="display: none;">
+            <label for="languages">Which programming languages do you know?</label>
+            <input type="text" id="languages" placeholder="e.g. Python, JavaScript" />
+          </div>
+          <div class="nav-buttons">
+            <button type="button" onclick="prevStep(1)">Back</button>
+            <button type="submit">Get Career Suggestion</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section id="result-page" class="result-container" style="display: none;">
+      <div id="confetti"></div>
+      <h2 id="resultTitle">Your Career Recommendation</h2>
+      <div class="suggestion-card">
+        <h3 id="jobTitle" class="typewriter">...</h3>
+        <p id="salary">Salary: ₹...</p>
+        <p id="description">...</p>
+        <p><strong id="whyThis">Why this role?</strong></p>
+        <p id="reasonText"></p>
+
+        <div class="chart-container">
+          <canvas id="radarChart"></canvas>
+        </div>
+
+        <div id="alternates" style="margin-top: 1rem;">
+          <p><strong>You might also consider:</strong></p>
+          <ul id="altList"></ul>
+        </div>
+
+        <button class="btn" onclick="showForm()">Tweak Answers</button>
+        <button class="btn badge-btn" onclick="openBadge()">Get Badge</button>
+        <button class="btn share-btn" onclick="shareResult()">Share Result</button>
+        <button id="feedbackBtn" style="margin-top: 1rem; padding: 0.5rem;">👍 Was this helpful?</button>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2025 Career Pathfinder. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const translations = {
+      en: {
+        landingDesc: "Let us guide you towards a fulfilling career based on your interests and strengths.",
+        resultTitle: "Your Career Recommendation",
+        whyThis: "Why this role?",
+        tweak: "Tweak Answers",
+        badge: "Get Badge",
+        share: "Share Result",
+        feedback: "Was this helpful?",
+        namePrompt: "Good name! Let's move on.",
+        hobbiesPrompt: "Great interests! This helps us suggest better roles.",
+        strengthPrompt: "Strong strength! This is valuable.",
+        langQ: "Which programming languages do you know?"
+      },
+      hi: {
+        landingDesc: "अपनी रुचि और क्षमता के आधार पर एक संतोषजनक करियर की ओर ले जाएं।",
+        resultTitle: "आपकी करियर सिफारिश",
+        whyThis: "इस भूमिका की सिफारिश क्यों?",
+        tweak: "उत्तर बदलें",
+        badge: "बैज प्राप्त करें",
+        share: "परिणाम साझा करें",
+        feedback: "क्या यह उपयोगी था?",
+        namePrompt: "अच्छा नाम! आगे बढ़ते हैं।",
+        hobbiesPrompt: "महान रुचियाँ! यह हमें बेहतर भूमिकाएँ सुझाने में मदद करता है।",
+        strengthPrompt: "मजबूत क्षमता! यह मूल्यवान है।",
+        langQ: "आप कौन सी प्रोग्रामिंग भाषाएँ जानते हैं?"
+      }
+    };
+
+    function translate(lang) {
+      document.getElementById('landing-desc').textContent = translations[lang].landingDesc;
+      document.getElementById('resultTitle').textContent = translations[lang].resultTitle;
+      document.getElementById('whyThis').textContent = translations[lang].whyThis;
+      document.querySelector('#result-page .btn:nth-child(1)').textContent = translations[lang].tweak;
+      document.querySelector('#result-page .badge-btn').textContent = translations[lang].badge;
+      document.querySelector('#result-page .share-btn').textContent = translations[lang].share;
+      document.getElementById('feedbackBtn').textContent = translations[lang].feedback;
+    }
+
+    function showForm() {
+      document.getElementById('landing-page').style.display = 'flex';
+      document.getElementById('form-page').style.display = 'block';
+      document.getElementById('result-page').style.display = 'none';
+      window.scrollTo(0, 0);
+      loadSavedProgress();
+      updateProgress(1);
+    }
+
+    function showResult() {
+      document.getElementById('landing-page').style.display = 'none';
+      document.getElementById('form-page').style.display = 'none';
+      document.getElementById('result-page').style.display = 'block';
+      window.scrollTo(0, 0);
+
+      const userData = JSON.parse(sessionStorage.getItem('userData'));
+      if (!userData) {
+        alert('No data found. Please fill the form.');
+        showForm();
+        return;
+      }
+
+      const job = getCareerSuggestion(userData);
+      const name = userData.name.split(' ')[0];
+
+      document.getElementById('jobTitle').textContent = '';
+      typeWriter(`Congrats, ${name}!`, 50, () => {
+        document.getElementById('jobTitle').textContent = job.title;
+      });
+
+      document.getElementById('salary').textContent = `Salary: ₹${job.salary}`;
+      document.getElementById('description').textContent = job.description;
+      document.getElementById('reasonText').textContent = job.reason;
+
+      renderRadarChart(userData);
+
+      const altList = document.getElementById('altList');
+      altList.innerHTML = '';
+      job.alternates.forEach(alt => {
+        const li = document.createElement('li');
+        li.textContent = `${alt.title} – ${alt.reason}`;
+        altList.appendChild(li);
+      });
+
+      const confetti = document.getElementById('confetti');
+      confetti.innerHTML = '';
+      for (let i = 0; i < 100; i++) {
+        const piece = document.createElement('div');
+        piece.classList.add('confetti-piece');
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.animationDelay = Math.random() * 5 + 's';
+        confetti.appendChild(piece);
+      }
+
+      if (window.location.hash !== '#result') {
+        window.location.hash = '#result';
+      }
+    }
+
+    function typeWriter(text, speed, callback) {
+      let i = 0;
+      const elem = document.getElementById('jobTitle');
+      elem.textContent = '';
+      const timer = setInterval(() => {
+        if (i < text.length) {
+          elem.textContent += text.charAt(i);
+          i++;
+        } else {
+          clearInterval(timer);
+          if (callback) callback();
+        }
+      }, speed);
+    }
+
+    function renderRadarChart(data) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Education', 'Branch', 'Hobbies', 'Strength', 'Work Style'],
+          datasets: [{
+            label: 'Your Profile',
+            data: [
+              data.education.length * 5,
+              data.branch.length * 3,
+              data.hobbies.length * 2,
+              data.strength.length * 3,
+              data.workStyle === 'Remote' ? 80 : 50
+            ],
+            backgroundColor: 'rgba(37,117,252,0.2)',
+            borderColor: '#2575fc',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scale: { ticks: { display: false }, pointLabels: { color: '#666', font: { size: 12 } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function saveProgress() {
+      const data = {
+        name: document.getElementById('name').value,
+        education: document.getElementById('education').value,
+        branch: document.getElementById('branch').value,
+        hobbies: document.getElementById('hobbies').value,
+        workStyle: document.getElementById('workStyle').value,
+        strength: document.getElementById('strength').value,
+        languages: document.getElementById('languages')?.value || ''
+      };
+      localStorage.setItem('careerFormData', JSON.stringify(data));
+    }
+
+    function loadSavedProgress() {
+      const saved = localStorage.getItem('careerFormData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        Object.keys(data).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = data[id];
+        });
+        checkSmartQuestions();
+      }
+    }
+
+    function checkSmartQuestions() {
+      const hobbies = document.getElementById('hobbies').value.toLowerCase();
+      const codingQ = document.getElementById('codingQ');
+      if (hobbies.includes('coding') || hobbies.includes('programming')) {
+        codingQ.style.display = 'block';
+      } else {
+        codingQ.style.display = 'none';
+      }
+    }
+
+    document.getElementById('name').addEventListener('input', e => {
+      const val = e.target.value;
+      const feedback = document.getElementById('nameFeedback');
+      feedback.textContent = translations[getLang()].namePrompt;
+      feedback.style.display = val.length > 2 ? 'block' : 'none';
+    });
+
+    document.getElementById('hobbies').addEventListener('input', e => {
+      checkSmartQuestions();
+      const feedback = document.getElementById('hobbiesFeedback');
+      feedback.textContent = translations[getLang()].hobbiesPrompt;
+      feedback.style.display = e.target.value.length > 0 ? 'block' : 'none';
+    });
+
+    document.getElementById('strength').addEventListener('input', e => {
+      const feedback = document.getElementById('strengthFeedback');
+      feedback.textContent = translations[getLang()].strengthPrompt;
+      feedback.style.display = e.target.value.length > 0 ? 'block' : 'none';
+    });
+
+    function openBadge() {
+      const userData = JSON.parse(sessionStorage.getItem('userData'));
+      const job = getCareerSuggestion(userData);
+      window.open(`badge.html?name=${encodeURIComponent(userData.name)}&job=${encodeURIComponent(job.title)}`, '_blank');
+    }
+
+    function shareResult() {
+      const userData = JSON.parse(sessionStorage.getItem('userData'));
+      const job = getCareerSuggestion(userData);
+      const text = `I was recommended to become a ${job.title} by Career Pathfinder!`;
+      if (navigator.share) {
+        navigator.share({ title: 'My Career Path', text, url: window.location.href });
+      } else {
+        alert('Copy this: ' + text);
+      }
+    }
+
+    document.getElementById('feedbackBtn').addEventListener('click', function () {
+      this.textContent = this.textContent.includes('👍') ? '👎 No' : '👍 Yes';
+      console.log('Feedback:', this.textContent);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('darkModeToggle');
+      const langSelect = document.getElementById('languageSelect');
+      const body = document.body;
+
+      const darkMode = localStorage.getItem('darkMode') || 'disabled';
+      if (darkMode === 'enabled') {
+        body.classList.add('dark-mode');
+        toggle.textContent = '☀️ Light Mode';
+      } else if (darkMode === 'high-contrast') {
+        body.classList.add('high-contrast');
+        toggle.textContent = '🎨 Normal Mode';
+      }
+
+      const savedLang = localStorage.getItem('language') || 'en';
+      langSelect.value = savedLang;
+      translate(savedLang);
+
+      langSelect.addEventListener('change', () => {
+        const lang = langSelect.value;
+        localStorage.setItem('language', lang);
+        translate(lang);
+      });
+
+      toggle.addEventListener('click', () => {
+        if (body.classList.contains('dark-mode')) {
+          body.classList.remove('dark-mode');
+          body.classList.add('high-contrast');
+          toggle.textContent = '🎨 Normal Mode';
+          localStorage.setItem('darkMode', 'high-contrast');
+        } else if (body.classList.contains('high-contrast')) {
+          body.classList.remove('high-contrast');
+          toggle.textContent = '🌙 Dark Mode';
+          localStorage.setItem('darkMode', 'disabled');
+        } else {
+          body.classList.add('dark-mode');
+          toggle.textContent = '☀️ Light Mode';
+          localStorage.setItem('darkMode', 'enabled');
+        }
+      });
+
+      const form = document.getElementById('careerForm');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const data = {
+          name: document.getElementById('name').value.trim(),
+          education: document.getElementById('education').value,
+          branch: document.getElementById('branch').value.trim().toLowerCase(),
+          hobbies: document.getElementById('hobbies').value.trim().toLowerCase(),
+          workStyle: document.getElementById('workStyle').value,
+          strength: document.getElementById('strength').value.trim().toLowerCase(),
+          languages: document.getElementById('languages')?.value.trim() || ''
+        };
+
+        if (!Object.values(data).every(v => v)) {
+          alert('Please fill all fields.');
+          return;
+        }
+
+        sessionStorage.setItem('userData', JSON.stringify(data));
+        saveProgress();
+        showResult();
+      });
+
+      if (window.location.hash === '#result') showResult();
+    });
+
+    function getLang() { return localStorage.getItem('language') || 'en'; }
+
+    function nextStep(step) {
+      saveProgress();
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active');
+      updateProgress(step);
+    }
+
+    function prevStep(step) {
+      saveProgress();
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active');
+      updateProgress(step);
+    }
+
+    function updateProgress(step) {
+      document.getElementById('progress').style.width = `${(step - 1) * 50}%`;
+    }
+
+    function getCareerSuggestion(data) {
+      const { education, branch, hobbies, strength } = data;
+      if (education === 'B.Tech' && branch.includes('computer') && hobbies.includes('coding')) {
+        return {
+          title: 'Software Developer',
+          salary: '3,50,000–6,00,000',
+          description: 'Designs and builds software applications. Work in tech companies or startups.',
+          reason: 'You have a tech degree, interest in coding, and strong logical skills.',
+          alternates: [
+            { title: 'DevOps Engineer', reason: 'You like automation and systems.' },
+            { title: 'Data Scientist', reason: 'You’re strong in math and tech.' }
+          ]
+        };
+      } else if (education === 'Arts' && (hobbies.includes('teaching') || strength.includes('teaching'))) {
+        return {
+          title: 'School Teacher',
+          salary: '2,50,000–4,00,000',
+          description: 'Inspires students with creative teaching methods in schools or educational institutions.',
+          reason: 'You enjoy sharing knowledge and have a passion for education.',
+          alternates: [
+            { title: 'Content Creator', reason: 'You can teach online.' },
+            { title: 'Counselor', reason: 'You care about people’s growth.' }
+          ]
+        };
+      } else {
+        return {
+          title: 'Freelancer / Consultant',
+          salary: 'Varies',
+          description: 'Work independently in your area of expertise. Build your own brand and client base.',
+          reason: 'Your profile shows diverse interests and flexibility.',
+          alternates: [
+            { title: 'Digital Marketer', reason: 'You’re creative and tech-savvy.' },
+            { title: 'UX Designer', reason: 'You value user experience.' }
+          ]
+        };
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered: ', reg))
+        .catch(err => console.log('SW registration failed: ', err));
+    }
+  </script>
+</body>
+</html>
